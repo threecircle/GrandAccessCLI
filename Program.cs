@@ -3,6 +3,13 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using GrantAccessCLI;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
+using System.Text;
+
+ContextModel _context = JsonSerializer.Deserialize<ContextModel>(File.ReadAllText("context.json"));
 
 var cmd = new RootCommand("Command Line Interface for grant access manager");
 var cmd_outFormatOpt = new Option<OutputFormat>(name: "--out-format", description: "Output format");
@@ -18,6 +25,19 @@ applyCmd.SetHandler(
     (FileInfo file) =>
     {
         
+        //Read manifest
+        string manifest = File.ReadAllText(file.FullName);
+        var deserializer = new DeserializerBuilder().Build();
+        var obj = deserializer.Deserialize<ManifestModel>(manifest);
+
+        //Create request
+        string payload = JsonSerializer.Serialize(obj);
+
+        HttpClient client = new HttpClient();
+        var response = client.PostAsync(_context.server.ToString() + "api/" + obj.apiVersion + "/" + obj.kind, new StringContent(payload, Encoding.UTF8, "application/json")).Result;
+
+        Console.WriteLine(response.StatusCode.ToString());
+
     }, applyCmd_FileArg);
 #endregion
 
@@ -46,8 +66,10 @@ contextCmd.Add(contextCmd_insecureOpt);
 contextCmd.SetHandler(
     (Uri server, string username, string password, string token, bool insecure, OutputFormat format) =>
     {
-        
-    }, contextCmd_serverArg, contextCmd_usernameOpt, contextCmd_passwordOpt, contextCmd_tokenOpt, contextCmd_insecureOpt);
+        ContextModel model = new() { server = server, insecure = insecure, token = token };
+        string serilizeContext = JsonSerializer.Serialize(model);
+        File.WriteAllText("context.json", serilizeContext);
+    }, contextCmd_serverArg, contextCmd_usernameOpt, contextCmd_passwordOpt, contextCmd_tokenOpt, contextCmd_insecureOpt, cmd_outFormatOpt);
 #endregion
 
 
