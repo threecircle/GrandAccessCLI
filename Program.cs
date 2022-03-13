@@ -4,6 +4,9 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using GrantAccessCLI;
 
+var cmd = new RootCommand("Command Line Interface for grant access manager");
+var cmd_outFormatOpt = new Option<OutputFormat>(name: "--out-format", description: "Output format");
+
 #region APPLY
 var applyCmd = new Command("apply", "Apply manifest file");
 
@@ -41,7 +44,7 @@ contextCmd.Add(contextCmd_tokenOpt);
 contextCmd.Add(contextCmd_insecureOpt);
 
 contextCmd.SetHandler(
-    (Uri server, string username, string password, string token, bool insecure) =>
+    (Uri server, string username, string password, string token, bool insecure, OutputFormat format) =>
     {
         
     }, contextCmd_serverArg, contextCmd_usernameOpt, contextCmd_passwordOpt, contextCmd_tokenOpt, contextCmd_insecureOpt);
@@ -54,11 +57,11 @@ contextCmd.SetHandler(
 var statusCmd = new Command("status", "Check status connect");
 #endregion
 
-var cmd = new RootCommand("Command Line Interface for grant access manager");
-var cmd_outFormatOpt = new Option<OutputFormat>(name: "--out-format", description: "Output format");
+
 
 cmd.AddGlobalOption(cmd_outFormatOpt);
 cmd.Add(applyCmd);
 cmd.Add(contextCmd);
+cmd.Add(statusCmd);
 
 return cmd.Invoke(args);
