@@ -1,0 +1,5 @@
+﻿apiVersion: v1alpha
+kind: project
+defenition:
+  projectId: test3
+  description: test project from cli
