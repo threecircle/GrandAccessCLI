@@ -5,7 +5,7 @@ using System.CommandLine.Invocation;
 using GrantAccessCLI;
 
 #region APPLY
-var applyCmd = new Command("apply", "Применить манифест");
+var applyCmd = new Command("apply", "Apply manifest file");
 
 var applyCmd_FileArg = new Argument<FileInfo>("file", "Путь до файла с манифестом");
 
@@ -14,44 +14,50 @@ applyCmd.Add(applyCmd_FileArg);
 applyCmd.SetHandler(
     (FileInfo file) =>
     {
-        Console.WriteLine(file.FullName);
+        
     }, applyCmd_FileArg);
 #endregion
 
 #region context
-var contextCmd = new Command("context", "Установить значения контекста");
+var contextCmd = new Command("set-context", "Set connection context");
 
-var contextCmd_serverArg = new Argument<Uri>("server", "Адрес сервера");
+var contextCmd_serverArg = new Argument<Uri>("server", "Server endpoint");
 
-var contextCmd_usernameOpt = new Option<string>(name: "--username", description: "Логин пользователя");
+var contextCmd_usernameOpt = new Option<string>(name: "--username", description: "User login");
 contextCmd_usernameOpt.AddAlias("-u");
 
-var contextCmd_passwordOpt = new Option<string>(name: "--password", description: "Пароль пользователя");
+var contextCmd_passwordOpt = new Option<string>(name: "--password", description: "User password");
 contextCmd_passwordOpt.AddAlias("-p");
 
-var contextCmd_tokenOpt = new Option<string>(name: "--token", description: "Токен сервисного аккаунта");
+var contextCmd_tokenOpt = new Option<string>(name: "--token", description: "SA JWT token");
 contextCmd_tokenOpt.AddAlias("-t");
+
+var contextCmd_insecureOpt = new Option<bool>(name: "--insecure", description: "Skip verify SSL certificate", getDefaultValue: () => false);
 
 contextCmd.Add(contextCmd_serverArg);
 contextCmd.Add(contextCmd_usernameOpt);
 contextCmd.Add(contextCmd_passwordOpt);
 contextCmd.Add(contextCmd_tokenOpt);
+contextCmd.Add(contextCmd_insecureOpt);
 
 contextCmd.SetHandler(
-    (Uri server, string username, string password, string token) =>
+    (Uri server, string username, string password, string token, bool insecure) =>
     {
-        Console.WriteLine(server.Port);
-    }, contextCmd_serverArg, contextCmd_usernameOpt, contextCmd_passwordOpt, contextCmd_tokenOpt);
+        
+    }, contextCmd_serverArg, contextCmd_usernameOpt, contextCmd_passwordOpt, contextCmd_tokenOpt, contextCmd_insecureOpt);
 #endregion
 
 
-var deleteCmd = new Command("delete", "Удалить манифест");
+//var deleteCmd = new Command("delete", "Delete manifest");
 
+#region status
+var statusCmd = new Command("status", "Check status connect");
+#endregion
 
+var cmd = new RootCommand("Command Line Interface for grant access manager");
+var cmd_outFormatOpt = new Option<OutputFormat>(name: "--out-format", description: "Output format");
 
-var cmd = new RootCommand();
-
-
+cmd.AddGlobalOption(cmd_outFormatOpt);
 cmd.Add(applyCmd);
 cmd.Add(contextCmd);
 
